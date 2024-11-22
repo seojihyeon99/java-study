@@ -18,10 +18,11 @@ public class GoodsApp {
 //				", 상품가격 : " + goods.price + 
 //				", 상품재고 : " + goods.countStock +
 //				", 상품판매량 : " + goods.countSold);
-		System.out.println("상품이름 : " + goods.getName() + 
-		", 상품가격 : " + goods.getPrice() + 
-		", 상품재고 : " + goods.getCountStock() +
-		", 상품판매량 : " + goods.getCountSold());		
+		
+//		System.out.println("상품이름 : " + goods.getName() + 
+//		", 상품가격 : " + goods.getPrice() + 
+//		", 상품재고 : " + goods.getCountStock() +
+//		", 상품판매량 : " + goods.getCountSold());		
 		
 		goods.printInfo();
 		

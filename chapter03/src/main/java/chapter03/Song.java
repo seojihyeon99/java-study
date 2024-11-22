@@ -29,6 +29,12 @@ public class Song {
 		this.composer = composer;
 		this.year = year;
 		this.track = track;
+		
+		System.out.println("some code1");
+		System.out.println("some code2");
+		System.out.println("some code3");
+		System.out.println("some code4");
+		System.out.println("some code5");
 	}
 	
 	public String getTitle() {

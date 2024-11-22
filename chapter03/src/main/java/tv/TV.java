@@ -1,8 +1,8 @@
 package tv;
 
 public class TV {
-	private int channel;
-	private int volume;
+	private int channel;	// 1 ~ 255
+	private int volume;		// 0 ~ 100
 	private boolean power;
 	
 	
