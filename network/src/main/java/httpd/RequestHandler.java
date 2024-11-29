@@ -11,6 +11,7 @@ import java.nio.file.Files;
 
 public class RequestHandler extends Thread {
 	private Socket socket;
+	private final String DOCUMENT_ROOT = "./webapp";
 	
 	public RequestHandler(Socket socket) {
 		this.socket = socket;
@@ -55,7 +56,8 @@ public class RequestHandler extends Thread {
 			} else {
 				// methods : POST, DELETE, PUT, HEAD, CONNECT, ...
 				// SimpleHttpServer에서는 무시(400 Bad Request)
-				responseStaticResources2(outputStream, tokens[1], tokens[2]);
+				response400Error(outputStream, tokens[2]);
+//				responseStaticResources2(outputStream, tokens[1], tokens[2]);
 			}
 			
 			// 예제 응답입니다.
@@ -82,7 +84,7 @@ public class RequestHandler extends Thread {
 	private void responseStaticResources2(OutputStream os, String url, String protocol) throws IOException {
 		url = "/error/400.html";
 		
-		File file = new File("./webapp" + url);
+		File file = new File(DOCUMENT_ROOT + url);
 		String contentType = Files.probeContentType(file.toPath());
 		// nio
 		byte[] body = Files.readAllBytes(file.toPath());
@@ -100,17 +102,18 @@ public class RequestHandler extends Thread {
 			url = "/index.html";
 		}
 		
-		File file = new File("./webapp" + url);
-		
+		File file = new File(DOCUMENT_ROOT + url);
 		if(!file.exists()) {
+			// 404 response
+//			response404Error(os, protocol);
+			
 			url = "/error/404.html";
-			file = new File("./webapp" + url);
+			file = new File(DOCUMENT_ROOT + url);
 
 			String contentType = Files.probeContentType(file.toPath());
 			// nio
 			byte[] body = Files.readAllBytes(file.toPath());
 			
-			// 404 response
 			os.write("HTTP/1.1 404 Not Found\n".getBytes("UTF-8"));
 			os.write(("Content-Type:" + contentType + "; charset=utf-8\n").getBytes("UTF-8"));
 			os.write("\n".getBytes());
@@ -119,14 +122,33 @@ public class RequestHandler extends Thread {
 			return;
 		}
 		
-		String contentType = Files.probeContentType(file.toPath());
 		// nio
 		byte[] body = Files.readAllBytes(file.toPath());
+		String contentType = Files.probeContentType(file.toPath());
 		
 		os.write("HTTP/1.1 200 OK\n".getBytes("UTF-8"));
 		os.write(("Content-Type:" + contentType + "; charset=utf-8\n").getBytes("UTF-8"));
 		os.write("\n".getBytes());
 		os.write(body);
+	}
+	
+	private void response400Error(OutputStream os, String string) {
+		/*
+		 HTTP/1.1 400 Bad Request\n
+		 Content-Type: text/html; charset=utf-8\n
+		 \n
+		 
+		 */	
+		
+	}
+
+	private void response404Error(OutputStream os, String protocol) {
+		/*
+		 HTTP/1.1 404 File Not Found\n
+		 Content-Type: text/html; charset=utf-8\n
+		 \n
+		 
+		 */
 	}
 
 	public void consoleLog(String message) {
