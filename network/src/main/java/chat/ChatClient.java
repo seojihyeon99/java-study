@@ -9,11 +9,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Scanner;
 
 public class ChatClient {
 //	private static final String Server_IP = "127.0.0.1";
-	public static final int PORT = 8080;
+	private static final int PORT = 8080;
 	
 	public static void main(String[] args) {
 		Scanner scanner = null;
@@ -30,38 +31,64 @@ public class ChatClient {
 			socket.connect(new InetSocketAddress(hostAddress, PORT));
 			
 			//4. reader/writer 생성
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+//			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true); // Auto Flush
 				
 			//5. join 프로토콜
-			System.out.print("닉네임>>");
-			String nickname = scanner.nextLine();
-			pw.println("join:" + nickname);
+			String nickname = null;
+			while(true) {
+				System.out.print("닉네임>>");
+				nickname = scanner.nextLine();
+				
+				if(nickname.trim().isEmpty()) {
+					System.out.println("닉네임을 입력해주세요.");
+				} else {
+					break;
+				}
+			}
+			// Base64 인코딩 (join:`My:Nickname`과 같은 경우의 parsing 오류 방지)
+			String encodedNickname = Base64.getEncoder().encodeToString(nickname.getBytes());
+			pw.println("join:" + encodedNickname);
 			pw.flush();
 
 			//6. ChatClientReceiveThread 시작
-			new ChatClientThread(socket).start();
+			ChatClientThread clientThread = new ChatClientThread(socket);
+			clientThread.start();
 			
 			//7. 키보드 입력 처리
 			while(true) {
 				String input = scanner.nextLine();
+				
+				// 빈 문자열인 경우 서버에 통신 보내지 않음
+				if(input.trim().isEmpty()) {
+					continue;
+				}
 						
-				if("quit".equals(input) == true) {
+				if("quit".equals(input)) {
 					// 8. quit 프로토콜 처리
 					pw.println("quit:");
 					pw.flush();
 					
-					// 여기서 Server 스레드 응답 완료될때까지 blocking하는 처리해주어야!!
+					// ChatServerThread 종료 대기(blocking)
+					try {
+						clientThread.join();						
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					
 					break;
 				} else {
 					// 9. 메시지 처리
-					pw.println("message:" + "[" + nickname + "] " + input);
+					// Base64 인코딩 (message:`제목:임시제목`과 같은 경우의 parsing 오류 방지)
+					String encodedMessage = Base64.getEncoder().encodeToString(input.getBytes());
+					pw.println("message:" + encodedMessage);
 					pw.flush();
 				}
 			}
 		} catch(IOException ex) {
-		    log( "error:" + ex );
+		    log("IOException:" + ex);
+		} catch(Exception e) {
+			log("Error:" + e);
 		} finally {
 			//10. 자원정리
 			try {

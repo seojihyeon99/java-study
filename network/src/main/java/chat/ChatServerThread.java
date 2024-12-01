@@ -10,9 +10,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
-import echo.EchoServer;
 
 public class ChatServerThread extends Thread {
 	private String nickname;
@@ -46,8 +46,6 @@ public class ChatServerThread extends Thread {
 				  doQuit(pw);
 			      break;
 			   }
-			   
-			   ChatServer.log(request);
 	
 			   // 4. 프로토콜 분석
 			   // join:홍길동, message:안녕하세요, quit:
@@ -82,20 +80,20 @@ public class ChatServerThread extends Thread {
 	}
 	
 
-	private void doJoin(String nickName, Writer writer) {
-	   this.nickname = nickName;
+	private void doJoin(String encodedNickname, Writer writer) {
+		String decodedNickname = new String(Base64.getDecoder().decode(encodedNickname));
+		nickname = decodedNickname;
 	   
-	   // 자신을 제외한 다른 사용자들에게 참여 메세지 브로드캐스팅
-	   String data = nickname + "님이 참여하셨습니다.";
-	   broadcast(data);
+		// 자신을 제외한 다른 사용자들에게 참여 메세지 브로드캐스팅
+		broadcast(nickname + "님이 참여하셨습니다.");
 	   
-	   // Writer Pool에 현재 스레드의 PrintWriter를 저장
-	   addWriter(writer);
+		// Writer Pool에 현재 스레드의 PrintWriter를 저장
+		addWriter(writer);
 	   
-	   // ack를 통해 자신에게 "방 참여 성공" 메세지를 보냄
-	   PrintWriter printWriter = (PrintWriter)writer;
-	   printWriter.println("join:OK");
-	   printWriter.flush();
+		// ack를 통해 자신에게 "방 참여 성공" 메세지를 보냄
+		PrintWriter printWriter = (PrintWriter)writer;
+		printWriter.println("join:OK");
+		printWriter.flush();
 	}
 	
 	private void broadcast(String data) {
@@ -114,22 +112,23 @@ public class ChatServerThread extends Thread {
 		}
 	}
 
-	private void doMessage(String str) {
-		String data = str;
-		broadcast(data);
+	private void doMessage(String encodedMessage) {
+		// "message:메세지" 구조
+		String decodedMessage = new String(Base64.getDecoder().decode(encodedMessage));
+		// "[홍길동] 메세지" 구조
+		broadcast("[" + nickname + "] " + decodedMessage);
 	}
 	
 	private void doQuit(Writer writer) {
-	   // 퇴장 로직 
-	   removeWriter(writer);
+		// 퇴장 로직 
+		removeWriter(writer);
 		
-	   String data = nickname + "님이 퇴장하셨습니다."; 
-	   broadcast(data);
+		broadcast(nickname + "님이 퇴장하셨습니다.");
 	   
-	   // ack를 통해 자신에게 "퇴장 성공" 메세지를 보냄
-	   PrintWriter printWriter = (PrintWriter)writer;
-	   printWriter.println("quit:OK");
-	   printWriter.flush();
+		// ack를 통해 자신에게 "퇴장 성공" 메세지를 보냄
+		PrintWriter printWriter = (PrintWriter)writer;
+		printWriter.println("quit:OK");
+		printWriter.flush();
 	}
 
 	private void removeWriter(Writer writer) {
