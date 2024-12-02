@@ -151,6 +151,13 @@ public class ChatWindow {
 		// quit protocol 구현
 		pw.println("quit:");
 		pw.flush();
+		
+		// ClientThread 종료 대기(blocking)
+		try {
+			clientThread.join();						
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		// 자원정리
 		try {
