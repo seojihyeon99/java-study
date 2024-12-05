@@ -11,7 +11,8 @@ import java.net.SocketException;
 import java.util.Scanner;
 
 public class EchoClient {
-	private static final String Server_IP = "127.0.0.1";
+//	private static final String Server_IP = "127.0.0.1";
+	private static final String Server_IP = "192.168.0.18";
 	
 	public static void main(String[] args) {
 		Scanner scanner = null;

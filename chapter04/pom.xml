@@ -17,6 +17,6 @@
   </dependencies>
   
   <build>
-  	<finalName>chapter03</finalName>
+  	<finalName>chapter04</finalName>
   </build>  
 </project>

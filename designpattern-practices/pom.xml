@@ -17,6 +17,6 @@
   </dependencies>
   
   <build>
-  	<finalName>chapter03</finalName>
+  	<finalName>designpattern-practices</finalName>
   </build>  
 </project>
